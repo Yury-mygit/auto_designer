@@ -99,6 +99,12 @@ class BoardClient:
         self._check(r)
         return True
 
+    def get_board(self, board_id: UUID) -> dict[str, Any]:
+        """GET /boards/{board_id} — board + все elements. Используется для
+        sweep zombies в CLI render."""
+        r = self._client.get(f"{self.base_url}/boards/{board_id}")
+        return self._check(r)
+
     def frame_png_url(self, frame_id: UUID) -> str:
         """Public URL для PNG-рендера фрейма (без auth)."""
         # `frames` endpoint живёт на /api/v1, тот же origin

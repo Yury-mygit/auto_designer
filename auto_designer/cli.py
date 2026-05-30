@@ -19,7 +19,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import UUID, uuid4, uuid5
 
 import click
 
@@ -126,19 +126,36 @@ def cmd_render(project: str, screen: str | None, render_all: bool) -> None:
             # 1) upsert frame
             client.upsert_by_ref(board_id, frame.to_payload(now_ms))
 
-            # 2) upsert children — у каждого parent_id = frame.id;
-            # для повторных render'ов child elements не используют external_ref
-            # (frame стабилен, child id регенерится — пока ОК для pilot).
+            # 2) upsert children. Каждый получает:
+            #   - детерминированный external_ref = uuid5(frame_ref, str(index)).
+            #     Тот же индекс → тот же ref на повторных render'ах → upsert
+            #     обновляет, не плодит zombies.
+            #   - attrs.auto = True. Marker «auto-managed»: sweep удалит этих
+            #     при сокращении состава screen'а, ручные правки дизайнера
+            #     (без marker'а) останутся неприкосновенными.
             children = frame.flat_children()
-            for child in children:
-                if child.external_ref is None:
-                    child.external_ref = uuid4()
-                # NOTE: child external_ref'ы НЕ персистятся в refs.json (только
-                # frame'ы). Это создаёт «zombies» — старые child-элементы остаются
-                # на доске после re-render. Pilot-acceptable; полная стратегия —
-                # отдельной итерацией (delete + recreate или nested refs).
+            new_refs: set[str] = set()
+            for i, child in enumerate(children):
+                child.external_ref = uuid5(external_ref, str(i))
+                child.attrs = {**child.attrs, "auto": True}
+                new_refs.add(str(child.external_ref))
                 client.upsert_by_ref(board_id, child.to_payload(now_ms))
 
-            click.echo(f"  ✓ {name} → frame {frame_id} ({len(children)} children)")
+            # 3) sweep zombies — auto-managed elements этого frame'а с
+            # external_ref'ом, которого больше нет в new set.
+            board = client.get_board(board_id)
+            sweeped = 0
+            for el in board.get("elements", []):
+                if el.get("parentId") != str(frame_id):
+                    continue
+                if not el.get("attrs", {}).get("auto"):
+                    continue
+                ext = el.get("externalRef")
+                if ext and ext not in new_refs:
+                    if client.delete_by_ref(board_id, UUID(ext)):
+                        sweeped += 1
+
+            tail = f" (sweeped {sweeped})" if sweeped else ""
+            click.echo(f"  ✓ {name} → frame {frame_id} ({len(children)} children){tail}")
             _save_refs(project, refs)
         click.echo("Done.")

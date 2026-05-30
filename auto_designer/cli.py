@@ -116,11 +116,24 @@ def cmd_render(project: str, screen: str | None, render_all: bool) -> None:
 
     refs = _load_refs(project)
     board_id = _board_id(project)
+    # Layout dictionary: project-specific screens могут декларировать
+    # дефолтные позиции (см. booking/screens.SCREEN_POSITIONS).
+    layout: dict[str, tuple[float, float]] = {}
+    try:
+        layout = __import__(
+            f"auto_designer.{project}.screens", fromlist=["SCREEN_POSITIONS"]
+        ).SCREEN_POSITIONS
+    except (AttributeError, ImportError):
+        pass
+
     with BoardClient() as client:
         for name in targets:
             frame_id, external_ref = _ensure_refs(project, name, refs)
             builder = PROJECT_SCREENS[project][name]
-            frame: Frame = builder(frame_id=frame_id, external_ref=external_ref)
+            x0, y0 = layout.get(name, (0.0, 0.0))
+            frame: Frame = builder(
+                frame_id=frame_id, external_ref=external_ref, x=x0, y=y0
+            )
             now_ms = int(time.time() * 1000)
 
             # 1) upsert frame

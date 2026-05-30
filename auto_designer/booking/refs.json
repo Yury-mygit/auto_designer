@@ -2,5 +2,13 @@
   "chat_thread": {
     "frame_id": "e9f736a6-c282-46da-b85a-593862cb471a",
     "external_ref": "c495f195-8f10-409e-82a4-9c487aa932bf"
+  },
+  "partner_clients_list": {
+    "frame_id": "de263d9a-3275-458a-a5bb-86e470af3b67",
+    "external_ref": "272b3f32-34c6-4af5-92e9-dd65987c4354"
+  },
+  "partner_client_edit_chat": {
+    "frame_id": "b39e6f00-5ed9-42ac-b91d-09384c494d46",
+    "external_ref": "26c976a8-88c9-4bdf-87e7-f7253e64a60a"
   }
 }

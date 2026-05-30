@@ -66,5 +66,45 @@
   "partner_staff": {
     "frame_id": "c56ef629-7638-4ca5-9f00-9f5b463b4fd0",
     "external_ref": "d87ec240-dbfa-4f14-b1e9-736941965753"
+  },
+  "client_hotel_services": {
+    "frame_id": "05a24994-376f-4c15-bbe5-89da8a1816b5",
+    "external_ref": "e6314d2e-66ca-4d16-a699-ef919ade5a8a"
+  },
+  "client_hotel_map": {
+    "frame_id": "2d249413-67af-426d-9497-7cb0836f9919",
+    "external_ref": "76bcf5eb-bd83-4cf1-8c77-d6e910386290"
+  },
+  "partner_walkin_modal": {
+    "frame_id": "411cc9bd-0ced-4754-91ac-47f36af881f9",
+    "external_ref": "2bb46bdf-f0fe-41d2-b3e8-6747f408b7db"
+  },
+  "partner_pending": {
+    "frame_id": "1616da22-c9ba-4f26-9e2f-a5143f156175",
+    "external_ref": "c350bf36-ef27-42b6-86a7-9db91160a51d"
+  },
+  "settings": {
+    "frame_id": "aeaeeafc-bbd3-4ad5-97ca-d4032e2cc777",
+    "external_ref": "a5010411-b7ff-4316-ab6b-81db456db8a1"
+  },
+  "login": {
+    "frame_id": "251fbec3-d349-48e6-800a-458009aae2e4",
+    "external_ref": "b180ce8e-103f-4f59-8906-d63e2143e733"
+  },
+  "admin_hotels": {
+    "frame_id": "37a6bb09-ea5d-4c79-b034-60362f102899",
+    "external_ref": "ba2e071e-9574-437f-8a94-85326f43c341"
+  },
+  "admin_bookings": {
+    "frame_id": "7da66dee-1f50-45b9-83af-630ea32f118e",
+    "external_ref": "eb984c7a-b950-4fa2-b68a-78f9eca30796"
+  },
+  "admin_users": {
+    "frame_id": "eff06733-da07-4ade-a7b7-ba246652433a",
+    "external_ref": "d294efe3-0e07-4c3e-9b48-ef54d5956298"
+  },
+  "admin_metrics": {
+    "frame_id": "4f14aad8-616a-4d8e-8be4-54240b64d750",
+    "external_ref": "f166df5a-d7a2-408c-9ee1-f91f387ea339"
   }
 }

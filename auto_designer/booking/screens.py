@@ -14,6 +14,7 @@ from __future__ import annotations
 from uuid import UUID, uuid4
 
 from auto_designer.booking.components import (
+    admin_table_row,
     banner_readonly,
     banner_warn,
     booking_card,
@@ -26,6 +27,9 @@ from auto_designer.booking.components import (
     hotel_head,
     hotel_list_card,
     hotel_tabs,
+    info_screen,
+    map_placeholder,
+    metric_card,
     msg_bubble_me,
     msg_bubble_them,
     partner_booking_card,
@@ -34,6 +38,8 @@ from auto_designer.booking.components import (
     role_card,
     room_card,
     room_card_partner,
+    service_card,
+    setting_row,
     staff_card,
     subject_card,
     subtitle_bar,
@@ -867,6 +873,412 @@ def partner_staff(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0
     )
 
 
+# ── Группы 3 + 4 — полировка + админка ──────────────────────────────────────
+
+
+def client_hotel_services(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """client/hotel/services — услуги отеля."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Отель Ала-Тоо Бутик-Стэй"))
+    cur_y += 56
+    els, dh = hotel_tabs(x, cur_y, ARTBOARD_W, active="Услуги")
+    children.extend(els)
+    cur_y += dh + 6
+
+    services = [
+        ("Завтрак", "Шведский стол с 7:00 до 11:00", "400 сом"),
+        ("Парковка", "Охраняемая, в 50 м от отеля", "200 сом/сутки"),
+        ("Трансфер из аэропорта", "Седан, до 4 человек", "1 200 сом"),
+        ("Спа-сауна", "1 час, до 4 человек", "1 800 сом"),
+    ]
+    for name, desc, price in services:
+        els, dh = service_card(x, cur_y, ARTBOARD_W, name, desc, price)
+        children.extend(els)
+        cur_y += dh + 4
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _CLIENT_NAV, active_idx=2)
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "client/hotel/services", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def client_hotel_map(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """client/hotel/map — карта отеля (placeholder)."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Ала-Тоо Бутик-Стэй"))
+    cur_y += 56
+    children.extend(map_placeholder(x + 8, cur_y, ARTBOARD_W - 16, ARTBOARD_H - 200, "Ала-Тоо"))
+    cur_y += ARTBOARD_H - 200 + 12
+
+    # address footer
+    children.append(Rect(
+        id=uuid4(), x=x + 8, y=cur_y, w=ARTBOARD_W - 16, h=64,
+        attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 24, y=cur_y + 12, w=ARTBOARD_W - 48, h=18,
+        attrs={"text": "Бишкек, ул. Жибек-Жолу 100", "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 24, y=cur_y + 36, w=ARTBOARD_W - 48, h=18,
+        attrs={"text": "GPS 42.879 · 74.624 · нажмите чтобы открыть в карте", "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+    ))
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "client/hotel/map", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def partner_walkin_modal(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """partner/walkin_modal — модалка walk-in брони."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    # затемнение фона imitate modal
+    children.append(Rect(
+        id=uuid4(), x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"fill": "#000000", "fillOpacity": 0.4, "rx": 0},
+    ))
+    # модалка по центру
+    mod_w = ARTBOARD_W - 24
+    mod_h = ARTBOARD_H - 120
+    mod_x = x + 12
+    mod_y = y + 60
+    children.append(Rect(
+        id=uuid4(), x=mod_x, y=mod_y, w=mod_w, h=mod_h,
+        attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 12},
+    ))
+    children.append(Text(
+        id=uuid4(), x=mod_x + 20, y=mod_y + 20, w=mod_w - 80, h=24,
+        attrs={"text": "Walk-in бронирование", "fontSize": FONT["size_lg"], "color": COLORS["text"], "bold": True},
+    ))
+    # close — простой символ
+    children.append(Text(
+        id=uuid4(), x=mod_x + mod_w - 36, y=mod_y + 18, w=20, h=20,
+        attrs={"text": "✕", "fontSize": 20, "color": COLORS["text_faint"]},
+    ))
+    fy = mod_y + 60
+    for label, value in [
+        ("Комната", "Стандарт двухместный"),
+        ("Заезд", "Сегодня"),
+        ("Выезд", "Завтра"),
+        ("Имя гостя", "Аскар Жунушалиев"),
+        ("Телефон", "+996 555 12 34 56"),
+    ]:
+        els, dh = form_field(mod_x, fy, mod_w, label, value)
+        children.extend(els)
+        fy += dh
+    # Создать кнопка
+    btn_y = mod_y + mod_h - 60
+    els, _ = primary_button(mod_x, btn_y, mod_w, "Создать бронь")
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "partner/walkin_modal", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def partner_pending(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """partner/pending — ожидание верификации."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Партнёр"))
+    cur_y += 56 + 60
+    children.extend(info_screen(
+        x, cur_y, ARTBOARD_W,
+        icon_name="lucide:hourglass",
+        heading="Ожидание верификации",
+        text="Мы свяжемся с вами в течение 24 часов. Подготовьте документы об отеле.",
+    ))
+    cur_y += 180
+    els, _ = primary_button(x, cur_y, ARTBOARD_W, "Связаться с админом")
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "partner/pending", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def settings_view(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """settings — общие настройки приложения."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Настройки"))
+    cur_y += 56 + 8
+
+    for label, value in [
+        ("Язык", "Русский"),
+        ("Тема", "Авто (системная)"),
+        ("Уведомления", "Включены"),
+        ("Профиль", "Yury · +996 555 ..."),
+        ("О приложении", "RForge Stay v0.3"),
+    ]:
+        els, dh = setting_row(x, cur_y, ARTBOARD_W, label, value)
+        children.extend(els)
+        cur_y += dh + 4
+
+    cur_y += 20
+    els, _ = primary_button(x, cur_y, ARTBOARD_W, "Выйти")
+    # окрасим в danger
+    for e in els:
+        if e.type == "rect":
+            e.attrs["fill"] = COLORS["danger"]
+            e.attrs["stroke"] = COLORS["danger"]
+    children.extend(els)
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "settings", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def login_view(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """login — dev-login форма."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Dev-login"))
+    cur_y += 56 + 40
+
+    # лого/название
+    children.extend(info_screen(
+        x, cur_y, ARTBOARD_W,
+        icon_name="lucide:key-round",
+        heading="Войти как",
+        text="Только для разработки. В TG WebApp вход через initData.",
+    ))
+    cur_y += 170
+
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Email", "yury@example.com")
+    children.extend(els)
+    cur_y += dh
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Пароль", "••••••••")
+    children.extend(els)
+    cur_y += dh + 16
+
+    els, _ = primary_button(x, cur_y, ARTBOARD_W, "Войти")
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "login", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+# ── Админка ────────────────────────────────────────────────────────────────
+
+
+_ADMIN_NAV = ["Отели", "Брони", "Юзеры", "Метрики", "Выход"]
+
+
+def admin_hotels(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """admin/hotels — таблица всех отелей."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Admin"))
+    cur_y += 56
+    els, dh = subtitle_bar(x, cur_y, ARTBOARD_W, "Отели · 24")
+    children.extend(els)
+    cur_y += dh + 4
+
+    # header
+    els, dh = admin_table_row(
+        x, cur_y, ARTBOARD_W,
+        cells=[("Название", 0.4), ("Город", 0.25), ("Номеров", 0.15), ("Статус", 0.2)],
+        bg=COLORS["surface_soft"],
+    )
+    children.extend(els)
+    cur_y += dh
+    rows = [
+        ("Ала-Тоо Бутик-Стэй", "Бишкек", "5", "опубликован"),
+        ("Манас Гарден Отель", "Бишкек", "12", "опубликован"),
+        ("Иссык-Куль Резорт", "Чолпон-Ата", "30", "опубликован"),
+        ("Алтын-Арашан Лодж", "Каракол", "8", "опубликован"),
+        ("Тестовый отель", "Ош", "2", "черновик"),
+        ("Bishkek Stay", "Бишкек", "4", "опубликован"),
+    ]
+    for r in rows:
+        els, dh = admin_table_row(
+            x, cur_y, ARTBOARD_W,
+            cells=[(r[0], 0.4), (r[1], 0.25), (r[2], 0.15), (r[3], 0.2)],
+            bg=COLORS["surface"],
+        )
+        children.extend(els)
+        cur_y += dh
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _ADMIN_NAV, active_idx=0)
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "admin/hotels", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def admin_bookings(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """admin/bookings — журнал всех броней."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Admin"))
+    cur_y += 56
+    els, dh = subtitle_bar(x, cur_y, ARTBOARD_W, "Брони · 142")
+    children.extend(els)
+    cur_y += dh + 4
+
+    els, dh = admin_table_row(
+        x, cur_y, ARTBOARD_W,
+        cells=[("Код", 0.25), ("Отель", 0.35), ("Сумма", 0.2), ("Статус", 0.2)],
+        bg=COLORS["surface_soft"],
+    )
+    children.extend(els)
+    cur_y += dh
+
+    rows = [
+        ("BK-2026-001", "Ала-Тоо", "9 000 сом", "Подтв."),
+        ("BK-2026-002", "Манас", "11 000 сом", "Оплачено"),
+        ("BK-2026-003", "Иссык-Куль", "16 000 сом", "Подтв."),
+        ("BK-2026-004", "Алтын-Арашан", "6 400 сом", "Ожидает"),
+        ("BK-2026-005", "Bishkek Stay", "3 200 сом", "Отмена"),
+        ("BK-2026-006", "Ала-Тоо", "5 400 сом", "Завершено"),
+    ]
+    for r in rows:
+        els, dh = admin_table_row(
+            x, cur_y, ARTBOARD_W,
+            cells=[(r[0], 0.25), (r[1], 0.35), (r[2], 0.2), (r[3], 0.2)],
+            bg=COLORS["surface"],
+        )
+        children.extend(els)
+        cur_y += dh
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _ADMIN_NAV, active_idx=1)
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "admin/bookings", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def admin_users(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """admin/users — список юзеров."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Admin"))
+    cur_y += 56
+    els, dh = subtitle_bar(x, cur_y, ARTBOARD_W, "Юзеры · 384")
+    children.extend(els)
+    cur_y += dh + 4
+
+    els, dh = admin_table_row(
+        x, cur_y, ARTBOARD_W,
+        cells=[("Имя", 0.4), ("Роли", 0.35), ("Брони", 0.25)],
+        bg=COLORS["surface_soft"],
+    )
+    children.extend(els)
+    cur_y += dh
+
+    rows = [
+        ("Yury", "client, partner, admin", "12"),
+        ("Айгуль", "partner", "—"),
+        ("Бекжан", "staff", "—"),
+        ("Иван Петров", "client", "2"),
+        ("Зохид", "client", "3"),
+        ("Сабина", "staff", "—"),
+        ("Test User", "client", "1"),
+    ]
+    for r in rows:
+        els, dh = admin_table_row(
+            x, cur_y, ARTBOARD_W,
+            cells=[(r[0], 0.4), (r[1], 0.35), (r[2], 0.25)],
+            bg=COLORS["surface"],
+        )
+        children.extend(els)
+        cur_y += dh
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _ADMIN_NAV, active_idx=2)
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "admin/users", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def admin_metrics(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """admin/metrics — дашборд."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Admin"))
+    cur_y += 56
+    els, dh = subtitle_bar(x, cur_y, ARTBOARD_W, "Метрики · май 2026")
+    children.extend(els)
+    cur_y += dh + 8
+
+    # 2×2 grid карточек
+    metrics = [
+        ("142", "Броней / мес", "+18%"),
+        ("384", "Юзеров", "+22%"),
+        ("24", "Отелей", "+2"),
+        ("1 240 000", "GMV (сом)", "+34%"),
+    ]
+    card_w = (ARTBOARD_W - 24 - 8) / 2
+    card_h = 100
+    for i, (val, label, delta) in enumerate(metrics):
+        cx = x + 12 + (i % 2) * (card_w + 8)
+        cy = cur_y + (i // 2) * (card_h + 8)
+        children.extend(metric_card(cx, cy, card_w, card_h, val, label, delta))
+    cur_y += 2 * (card_h + 8) + 8
+
+    # chart placeholder
+    children.append(Rect(
+        id=uuid4(), x=x + 12, y=cur_y, w=ARTBOARD_W - 24, h=180,
+        attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 10},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 24, y=cur_y + 14, w=ARTBOARD_W - 48, h=18,
+        attrs={"text": "Брони по дням", "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+    ))
+    # фейковые «бары» chart
+    bar_w = (ARTBOARD_W - 48) / 12
+    for i in range(12):
+        h_bar = 30 + (i * 7) % 100
+        children.append(Rect(
+            id=uuid4(), x=x + 24 + i * bar_w + 4, y=cur_y + 180 - 20 - h_bar,
+            w=bar_w - 8, h=h_bar,
+            attrs={"fill": COLORS["accent"], "rx": 3},
+        ))
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _ADMIN_NAV, active_idx=3)
+    children.extend(els)
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "admin/metrics", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
 SCREENS = {
     "chat_thread": chat_thread,
     "partner_clients_list": partner_clients_list,
@@ -885,6 +1297,18 @@ SCREENS = {
     "partner_all_rooms": partner_all_rooms,
     "partner_availability": partner_availability,
     "partner_staff": partner_staff,
+    # группа 3
+    "client_hotel_services": client_hotel_services,
+    "client_hotel_map": client_hotel_map,
+    "partner_walkin_modal": partner_walkin_modal,
+    "partner_pending": partner_pending,
+    "settings": settings_view,
+    "login": login_view,
+    # группа 4
+    "admin_hotels": admin_hotels,
+    "admin_bookings": admin_bookings,
+    "admin_users": admin_users,
+    "admin_metrics": admin_metrics,
 }
 
 # 3×N grid layout.
@@ -921,7 +1345,20 @@ SCREEN_POSITIONS: dict[str, tuple[float, float]] = {
     "partner_rooms_list": (_C1, _R5),
     "partner_room_edit": (_C2, _R5),
     "partner_all_rooms": (_C3, _R5),
-    # Row 6 — партнёр availability + staff
+    # Row 6 — партнёр availability + staff + walkin
     "partner_availability": (_C1, _R6),
     "partner_staff": (_C2, _R6),
+    "partner_walkin_modal": (_C3, _R6),
+    # Row 7 — полировка (client services/map + partner pending)
+    "client_hotel_services": (_C1, 6 * (ARTBOARD_H + _ROW_GAP)),
+    "client_hotel_map": (_C2, 6 * (ARTBOARD_H + _ROW_GAP)),
+    "partner_pending": (_C3, 6 * (ARTBOARD_H + _ROW_GAP)),
+    # Row 8 — settings, login + admin_hotels
+    "settings": (_C1, 7 * (ARTBOARD_H + _ROW_GAP)),
+    "login": (_C2, 7 * (ARTBOARD_H + _ROW_GAP)),
+    "admin_hotels": (_C3, 7 * (ARTBOARD_H + _ROW_GAP)),
+    # Row 9 — admin bookings/users/metrics
+    "admin_bookings": (_C1, 8 * (ARTBOARD_H + _ROW_GAP)),
+    "admin_users": (_C2, 8 * (ARTBOARD_H + _ROW_GAP)),
+    "admin_metrics": (_C3, 8 * (ARTBOARD_H + _ROW_GAP)),
 }

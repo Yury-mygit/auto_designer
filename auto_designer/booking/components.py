@@ -656,6 +656,165 @@ def calendar_grid(
     return elements, (cur_y - y) + 4
 
 
+def service_card(
+    x: float, y: float, w: float, name: str, description: str, price: str,
+) -> tuple[list[Element], float]:
+    h = 88
+    pad = 12
+    return [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 14, w=w - 130, h=20,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 36, w=w - 130, h=18,
+            attrs={"text": description, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        Text(
+            id=uuid4(), x=x + w - 120, y=y + 14, w=100, h=20,
+            attrs={"text": price, "fontSize": FONT["size_md"], "color": COLORS["accent"], "bold": True},
+        ),
+    ], h
+
+
+def info_screen(
+    x: float, y: float, w: float, icon_name: str, heading: str, text: str,
+) -> list[Element]:
+    """Центрированный info-блок (для pending/empty states)."""
+    cx = x + w / 2
+    return [
+        Element(
+            id=uuid4(), type="image",
+            x=cx - 36, y=y, w=72, h=72,
+            attrs={"src": _icon_url(icon_name, COLORS["accent"]), "fit": "contain"},
+        ),
+        Text(
+            id=uuid4(), x=x + 24, y=y + 92, w=w - 48, h=24,
+            attrs={"text": heading, "fontSize": FONT["size_xl"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 24, y=y + 124, w=w - 48, h=18,
+            attrs={"text": text, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+    ]
+
+
+def setting_row(
+    x: float, y: float, w: float, label: str, value: str, has_chevron: bool = True,
+) -> tuple[list[Element], float]:
+    h = 56
+    pad = 16
+    elements: list[Element] = [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 8},
+        ),
+        Text(
+            id=uuid4(), x=x + pad + 4, y=y + 12, w=w / 2 - pad, h=18,
+            attrs={"text": label, "fontSize": FONT["size_md"], "color": COLORS["text"]},
+        ),
+        Text(
+            id=uuid4(), x=x + pad + 4, y=y + 32, w=w - 60 - pad, h=16,
+            attrs={"text": value, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+    ]
+    if has_chevron:
+        elements.append(Element(
+            id=uuid4(), type="image",
+            x=x + w - 36, y=y + 20, w=16, h=16,
+            attrs={"src": _icon_url("lucide:chevron-right", COLORS["text_faint"]), "fit": "contain"},
+        ))
+    return elements, h
+
+
+def metric_card(
+    x: float, y: float, w: float, h: float, value: str, label: str, delta: str | None = None,
+) -> list[Element]:
+    elements = [
+        Rect(
+            id=uuid4(), x=x, y=y, w=w, h=h,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 10},
+        ),
+        Text(
+            id=uuid4(), x=x + 14, y=y + 14, w=w - 28, h=16,
+            attrs={"text": label, "fontSize": FONT["size_xs"], "color": COLORS["muted"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 14, y=y + 32, w=w - 28, h=28,
+            attrs={"text": value, "fontSize": FONT["size_xl"], "color": COLORS["text"], "bold": True},
+        ),
+    ]
+    if delta:
+        elements.append(Text(
+            id=uuid4(), x=x + 14, y=y + 64, w=w - 28, h=16,
+            attrs={"text": delta, "fontSize": FONT["size_xs"], "color": COLORS["success"]},
+        ))
+    return elements
+
+
+def admin_table_row(
+    x: float, y: float, w: float, cells: list[tuple[str, float]],
+    bg: str | None = None,
+) -> tuple[list[Element], float]:
+    """cells = [(text, width_pct), ...] — суммарно 1.0. bg для зебры/header."""
+    h = 40
+    pad = 12
+    elements: list[Element] = []
+    if bg:
+        elements.append(Rect(
+            id=uuid4(), x=x, y=y, w=w, h=h,
+            attrs={"fill": bg, "rx": 0},
+        ))
+    # bottom divider
+    elements.append(Rect(
+        id=uuid4(), x=x + pad, y=y + h - 1, w=w - 2 * pad, h=1,
+        attrs={"fill": COLORS["border_soft"], "rx": 0},
+    ))
+    cx = x + pad
+    for text, pct in cells:
+        cw = (w - 2 * pad) * pct
+        elements.append(Text(
+            id=uuid4(), x=cx, y=y + 12, w=cw, h=18,
+            attrs={"text": text, "fontSize": FONT["size_sm"], "color": COLORS["text"]},
+        ))
+        cx += cw
+    return elements, h
+
+
+def map_placeholder(
+    x: float, y: float, w: float, h: float, pin_label: str,
+) -> list[Element]:
+    """Заглушка карты с пин-маркером."""
+    return [
+        Rect(
+            id=uuid4(), x=x, y=y, w=w, h=h,
+            attrs={"fill": "#e3eaf3", "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+        ),
+        # фейковые «дороги» — линии
+        Rect(id=uuid4(), x=x + 20, y=y + h / 3, w=w - 40, h=2, attrs={"fill": "#ffffff", "rx": 1}),
+        Rect(id=uuid4(), x=x + w / 3, y=y + 20, w=2, h=h - 40, attrs={"fill": "#ffffff", "rx": 1}),
+        Rect(id=uuid4(), x=x + 30, y=y + 2 * h / 3, w=w / 2, h=2, attrs={"fill": "#ffffff", "rx": 1}),
+        # pin
+        Element(
+            id=uuid4(), type="image",
+            x=x + w / 2 - 14, y=y + h / 2 - 14, w=28, h=28,
+            attrs={"src": _icon_url("lucide:map-pin", COLORS["danger"]), "fit": "contain"},
+        ),
+        Rect(
+            id=uuid4(), x=x + w / 2 - 60, y=y + h / 2 + 18, w=120, h=24,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 4},
+        ),
+        Text(
+            id=uuid4(), x=x + w / 2 - 50, y=y + h / 2 + 23, w=100, h=16,
+            attrs={"text": pin_label, "fontSize": FONT["size_xs"], "color": COLORS["text"], "bold": True},
+        ),
+    ]
+
+
 def chat_icon_btn(x: float, y: float, color_hex: str | None = None) -> Element:
     """Маленькая кнопка-иконка чата (lucide:message-circle) для карточек
     комнаты / брони / hotel_detail."""

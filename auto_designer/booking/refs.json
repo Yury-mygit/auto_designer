@@ -42,5 +42,29 @@
   "partner_hotels_list": {
     "frame_id": "47a4f658-3bdb-49ee-a321-5b6ac4e2d2d1",
     "external_ref": "c93a5087-4ee6-4ca3-8d2f-40033bab26ce"
+  },
+  "partner_bookings": {
+    "frame_id": "05f6702b-5509-4c17-bd81-228fda481af0",
+    "external_ref": "c9a85d01-10d8-4140-9a6f-b3250ba9f65c"
+  },
+  "partner_rooms_list": {
+    "frame_id": "1ff14743-0209-4f22-999c-5615cc96f2dd",
+    "external_ref": "28cf46cf-83cc-4ab6-9b89-517d000c45ca"
+  },
+  "partner_room_edit": {
+    "frame_id": "d8bec7a5-b4ce-4ebf-bc19-db365155ca64",
+    "external_ref": "f89b01c9-db48-49a6-921f-98fc0073efed"
+  },
+  "partner_all_rooms": {
+    "frame_id": "3a030c9b-ccfe-4771-8cd1-b24ab6fb054d",
+    "external_ref": "2fbf920d-9747-49a4-8dcd-9ae99f9d894b"
+  },
+  "partner_availability": {
+    "frame_id": "12faeb45-bffa-4af1-871b-e4fd821dfc43",
+    "external_ref": "f7f146d8-6bd4-4487-a000-a18654dcc1ce"
+  },
+  "partner_staff": {
+    "frame_id": "c56ef629-7638-4ca5-9f00-9f5b463b4fd0",
+    "external_ref": "d87ec240-dbfa-4f14-b1e9-736941965753"
   }
 }

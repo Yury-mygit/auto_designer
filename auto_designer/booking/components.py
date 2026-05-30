@@ -461,6 +461,201 @@ def pay_method(
     ], h
 
 
+def partner_booking_card(
+    x: float, y: float, w: float, code: str, client: str, room: str,
+    dates: str, total: str, status: str, status_color: str,
+) -> tuple[list[Element], float]:
+    """Карточка брони в партнёрском списке. status_color — accent/success/danger."""
+    h = 124
+    pad = 14
+    return [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 10},
+        ),
+        # code + status pill (top row)
+        Text(
+            id=uuid4(), x=x + 20, y=y + 14, w=180, h=18,
+            attrs={"text": code, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        Rect(
+            id=uuid4(), x=x + w - 110, y=y + 12, w=92, h=22,
+            attrs={"fill": status_color, "stroke": status_color, "strokeWidth": 1, "rx": 11},
+        ),
+        Text(
+            id=uuid4(), x=x + w - 104, y=y + 16, w=80, h=16,
+            attrs={"text": status, "fontSize": FONT["size_xs"], "color": "#ffffff", "bold": True},
+        ),
+        # client + room (middle)
+        Text(
+            id=uuid4(), x=x + 20, y=y + 40, w=w - 40, h=20,
+            attrs={"text": client, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 62, w=w - 40, h=18,
+            attrs={"text": room, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        # dates + total (bottom row)
+        Text(
+            id=uuid4(), x=x + 20, y=y + 86, w=w / 2, h=18,
+            attrs={"text": dates, "fontSize": FONT["size_sm"], "color": COLORS["text"]},
+        ),
+        Text(
+            id=uuid4(), x=x + w - 130, y=y + 86, w=120, h=20,
+            attrs={"text": total, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+    ], h
+
+
+def room_card_partner(
+    x: float, y: float, w: float, name: str, meta: str, price: str, published: bool,
+) -> tuple[list[Element], float]:
+    """Карточка комнаты в партнёрском списке (без Забронировать)."""
+    h = 100
+    pad = 12
+    photo = 64
+    return [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+        ),
+        Rect(
+            id=uuid4(), x=x + 18, y=y + 18, w=photo, h=photo,
+            attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 6},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo / 2 - 12, y=y + 18 + photo / 2 - 8, w=24, h=20,
+            attrs={"text": "🛏", "fontSize": 22, "color": COLORS["text_faint"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 16, w=w - 100 - photo, h=20,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 40, w=w - 100 - photo, h=18,
+            attrs={"text": meta, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 60, w=w - 100 - photo, h=18,
+            attrs={"text": price, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        # status pill top-right
+        Rect(
+            id=uuid4(), x=x + w - 110, y=y + 12, w=92, h=22,
+            attrs={
+                "fill": COLORS["success"] if published else COLORS["text_faint"],
+                "stroke": COLORS["success"] if published else COLORS["text_faint"],
+                "strokeWidth": 1, "rx": 11,
+            },
+        ),
+        Text(
+            id=uuid4(), x=x + w - 100, y=y + 16, w=80, h=16,
+            attrs={
+                "text": "опубликовано" if published else "черновик",
+                "fontSize": FONT["size_xs"], "color": "#ffffff", "bold": True,
+            },
+        ),
+    ], h
+
+
+def staff_card(
+    x: float, y: float, w: float, name: str, perm_summary: str, chat: bool,
+) -> tuple[list[Element], float]:
+    """Карточка staff с perm-summary + чат-флаг + edit-icon."""
+    h = 76
+    pad = 12
+    return [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+        ),
+        # avatar placeholder
+        Rect(
+            id=uuid4(), x=x + 18, y=y + 16, w=44, h=44,
+            attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 22},
+        ),
+        Element(
+            id=uuid4(), type="image",
+            x=x + 18 + 12, y=y + 16 + 12, w=20, h=20,
+            attrs={"src": _icon_url("lucide:user", COLORS["text_faint"]), "fit": "contain"},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + 56, y=y + 18, w=w - 130 - 56, h=20,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + 56, y=y + 42, w=w - 130 - 56, h=18,
+            attrs={"text": perm_summary, "fontSize": FONT["size_xs"], "color": COLORS["muted"]},
+        ),
+        # chat-icon если chat=True
+        Element(
+            id=uuid4(), type="image",
+            x=x + w - 60, y=y + 22, w=22, h=22,
+            attrs={
+                "src": _icon_url("lucide:message-circle", COLORS["accent"] if chat else COLORS["text_faint"]),
+                "fit": "contain",
+            },
+        ),
+        # edit icon
+        Element(
+            id=uuid4(), type="image",
+            x=x + w - 30, y=y + 22, w=22, h=22,
+            attrs={"src": _icon_url("lucide:settings-2", COLORS["text_faint"]), "fit": "contain"},
+        ),
+    ], h
+
+
+def calendar_grid(
+    x: float, y: float, w: float, rows: list[tuple[str, list[str]]],
+    days: list[str],
+) -> tuple[list[Element], float]:
+    """Календарь занятости: header (days) + rows of (room_name, [status, ...]).
+    status ∈ {"free", "booked", "blocked"}.
+    """
+    header_h = 28
+    row_h = 36
+    name_w = 110
+    cells = len(days)
+    cell_w = (w - name_w - 8) / cells
+    elements: list[Element] = []
+    # header
+    elements.append(Rect(
+        id=uuid4(), x=x + 8, y=y, w=w - 16, h=header_h,
+        attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 6},
+    ))
+    elements.append(Text(
+        id=uuid4(), x=x + 16, y=y + 7, w=name_w - 8, h=16,
+        attrs={"text": "Комната / День", "fontSize": FONT["size_xs"], "color": COLORS["muted"], "bold": True},
+    ))
+    for i, d in enumerate(days):
+        cx = x + 8 + name_w + i * cell_w
+        elements.append(Text(
+            id=uuid4(), x=cx + cell_w / 2 - 12, y=y + 7, w=cell_w, h=16,
+            attrs={"text": d, "fontSize": FONT["size_xs"], "color": COLORS["muted"]},
+        ))
+    cur_y = y + header_h + 4
+    # rows
+    color_map = {
+        "free": COLORS["surface"],
+        "booked": COLORS["accent"],
+        "blocked": "#aaaaaa",
+    }
+    for room_name, row in rows:
+        elements.append(Text(
+            id=uuid4(), x=x + 16, y=cur_y + 10, w=name_w - 8, h=18,
+            attrs={"text": room_name, "fontSize": FONT["size_sm"], "color": COLORS["text"], "bold": True},
+        ))
+        for i, status in enumerate(row):
+            cx = x + 8 + name_w + i * cell_w
+            fill = color_map.get(status, COLORS["surface"])
+            elements.append(Rect(
+                id=uuid4(), x=cx + 2, y=cur_y, w=cell_w - 4, h=row_h - 4,
+                attrs={"fill": fill, "stroke": COLORS["border"], "strokeWidth": 1, "rx": 4},
+            ))
+        cur_y += row_h
+    return elements, (cur_y - y) + 4
+
+
 def chat_icon_btn(x: float, y: float, color_hex: str | None = None) -> Element:
     """Маленькая кнопка-иконка чата (lucide:message-circle) для карточек
     комнаты / брони / hotel_detail."""

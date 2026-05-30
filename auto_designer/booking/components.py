@@ -79,9 +79,27 @@ def subtitle_bar(x: float, y: float, w: float, text: str) -> tuple[list[Element]
     ], h
 
 
+# Lucide icons via iconify.design (SVG). Цвет берётся из ?color param.
+# Active items используют accent (#1a73e8), inactive — #888888.
+_LUCIDE_ICON = {
+    "Отели": "lucide:building-2",
+    "Комнаты": "lucide:bed",
+    "Брони": "lucide:calendar-days",
+    "Клиенты": "lucide:users",
+    "Персонал": "lucide:user",
+}
+
+
+def _icon_url(name: str, color_hex: str) -> str:
+    """color_hex без '#'. iconify SVG raster через ?color=hex."""
+    color = color_hex.lstrip("#")
+    return f"https://api.iconify.design/{name}.svg?color=%23{color}"
+
+
 def bottom_nav(
-    x: float, y: float, w: float, items: list[str], active_idx: int,
+    x: float, y: float, w: float, items: list[tuple[str, str]] | list[str], active_idx: int,
 ) -> tuple[list[Element], float]:
+    """items — список label'ов; иконки берутся из `_LUCIDE_ICON` по label'у."""
     h = 56
     n = len(items)
     cell_w = w / n
@@ -91,19 +109,23 @@ def bottom_nav(
             attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 0},
         ),
     ]
-    for i, label in enumerate(items):
+    for i, item in enumerate(items):
+        label = item if isinstance(item, str) else item[0]
         cx = x + i * cell_w
         is_active = i == active_idx
-        color = COLORS["accent"] if is_active else COLORS["text_faint"]
-        # icon placeholder (square outline)
-        elements.append(Rect(
-            id=uuid4(), x=cx + cell_w / 2 - 9, y=y + 8, w=18, h=18,
-            attrs={"fill": None, "stroke": color, "strokeWidth": 2, "rx": 3},
+        color_hex = COLORS["accent"] if is_active else COLORS["text_faint"]
+        # icon — image с lucide SVG URL
+        icon_name = _LUCIDE_ICON.get(label, "lucide:square")
+        elements.append(Element(
+            id=uuid4(), type="image",
+            x=cx + cell_w / 2 - 11, y=y + 6, w=22, h=22,
+            attrs={"src": _icon_url(icon_name, color_hex), "fit": "contain"},
         ))
         # label
+        text_w = len(label) * 5.5
         elements.append(Text(
-            id=uuid4(), x=cx + cell_w / 2 - len(label) * 3, y=y + 32, w=cell_w, h=16,
-            attrs={"text": label, "fontSize": FONT["size_xs"], "color": color},
+            id=uuid4(), x=cx + (cell_w - text_w) / 2, y=y + 34, w=cell_w, h=16,
+            attrs={"text": label, "fontSize": FONT["size_xs"], "color": color_hex},
         ))
     return elements, h
 
@@ -288,10 +310,15 @@ def msg_bubble_me(x: float, y: float, w_max: float, text: str) -> tuple[list[Ele
 def composer(x: float, y: float, w: float, placeholder: str = "Сообщение…") -> tuple[list[Element], float]:
     h = 56
     pad = 8
-    btn_w = 100
+    btn_w = 110
     ta_w = w - 2 * pad - btn_w - 8
+    btn_x = x + pad + ta_w + 8
+    btn_label = "Отправить"
+    # Без поддержки textAlign center'им text «руками»; кириллица bold ~8.5px/char.
+    btn_text_w = len(btn_label) * 8.5
+    btn_text_x = btn_x + max(8, (btn_w - btn_text_w) / 2)
     return [
-        # граница сверху — тонкий rect
+        # граница сверху
         Rect(
             id=uuid4(), x=x, y=y, w=w, h=1,
             attrs={"fill": COLORS["border_soft"], "rx": 0},
@@ -310,11 +337,11 @@ def composer(x: float, y: float, w: float, placeholder: str = "Сообщени�
         ),
         # send button
         Rect(
-            id=uuid4(), x=x + pad + ta_w + 8, y=y + pad, w=btn_w, h=h - 2 * pad,
+            id=uuid4(), x=btn_x, y=y + pad, w=btn_w, h=h - 2 * pad,
             attrs={"fill": COLORS["accent"], "stroke": COLORS["accent"], "strokeWidth": 1, "rx": 4},
         ),
         Text(
-            id=uuid4(), x=x + pad + ta_w + 8 + 20, y=y + pad + 12, w=btn_w, h=16,
-            attrs={"text": "Отправить", "fontSize": FONT["size_md"], "color": COLORS["accent_text"], "bold": True},
+            id=uuid4(), x=btn_text_x, y=y + pad + 12, w=btn_text_w + 4, h=16,
+            attrs={"text": btn_label, "fontSize": FONT["size_md"], "color": COLORS["accent_text"], "bold": True},
         ),
     ], h

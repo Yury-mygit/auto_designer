@@ -311,6 +311,156 @@ def msg_bubble_me(x: float, y: float, w_max: float, text: str) -> tuple[list[Ele
     )
 
 
+def role_card(
+    x: float, y: float, w: float, label: str, description: str, icon_name: str,
+) -> tuple[list[Element], float]:
+    """Большая карточка выбора роли на entry-экране."""
+    h = 96
+    pad = 16
+    icon_size = 40
+    return [
+        Rect(
+            id=uuid4(), x=x + 12, y=y + 6, w=w - 24, h=h - 12,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 12},
+        ),
+        Element(
+            id=uuid4(), type="image",
+            x=x + 12 + pad, y=y + 6 + (h - 12 - icon_size) / 2, w=icon_size, h=icon_size,
+            attrs={"src": _icon_url(icon_name, COLORS["accent"]), "fit": "contain"},
+        ),
+        Text(
+            id=uuid4(), x=x + 12 + pad + icon_size + 12, y=y + 24, w=w - 100, h=22,
+            attrs={"text": label, "fontSize": FONT["size_lg"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 12 + pad + icon_size + 12, y=y + 52, w=w - 100, h=18,
+            attrs={"text": description, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+    ], h
+
+
+def hotel_list_card(
+    x: float, y: float, w: float, name: str, city: str, meta: str,
+) -> tuple[list[Element], float]:
+    """Карточка отеля в общем списке (client/hotels или partner/hotels_list)."""
+    h = 88
+    pad = 12
+    photo = 64
+    return [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+        ),
+        Rect(
+            id=uuid4(), x=x + 18, y=y + 16, w=photo, h=photo - 16,
+            attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 6},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo / 2 - 10, y=y + 36, w=20, h=20,
+            attrs={"text": "🏨", "fontSize": 18, "color": COLORS["text_faint"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 18, w=w - 60 - photo, h=20,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 40, w=w - 60 - photo, h=18,
+            attrs={"text": city, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo + 14, y=y + 60, w=w - 60 - photo, h=16,
+            attrs={"text": meta, "fontSize": FONT["size_xs"], "color": COLORS["text_faint"]},
+        ),
+    ], h
+
+
+def form_field(
+    x: float, y: float, w: float, label: str, value: str, multiline: bool = False,
+) -> tuple[list[Element], float]:
+    """Form field: label сверху, input под ним. value — текущее значение."""
+    h = 70 if not multiline else 96
+    pad = 12
+    elements: list[Element] = [
+        Text(
+            id=uuid4(), x=x + pad, y=y + 2, w=w - 2 * pad, h=16,
+            attrs={"text": label, "fontSize": FONT["size_xs"], "color": COLORS["muted"]},
+        ),
+        Rect(
+            id=uuid4(), x=x + pad, y=y + 22, w=w - 2 * pad, h=h - 30,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 6},
+        ),
+        Text(
+            id=uuid4(), x=x + pad + 10, y=y + 22 + 12, w=w - 2 * pad - 20, h=18,
+            attrs={"text": value, "fontSize": FONT["size_md"], "color": COLORS["text"]},
+        ),
+    ]
+    return elements, h
+
+
+def primary_button(
+    x: float, y: float, w: float, label: str, disabled: bool = False,
+) -> tuple[list[Element], float]:
+    """Большая кнопка primary внизу экранов."""
+    h = 48
+    pad = 12
+    fill = "#aaaaaa" if disabled else COLORS["accent"]
+    btn_x = x + pad
+    btn_w = w - 2 * pad
+    text_w = len(label) * 8.5
+    text_x = btn_x + max(8, (btn_w - text_w) / 2)
+    return [
+        Rect(
+            id=uuid4(), x=btn_x, y=y, w=btn_w, h=h,
+            attrs={"fill": fill, "stroke": fill, "strokeWidth": 1, "rx": 6},
+        ),
+        Text(
+            id=uuid4(), x=text_x, y=y + 14, w=text_w + 4, h=18,
+            attrs={"text": label, "fontSize": FONT["size_md"], "color": COLORS["accent_text"], "bold": True},
+        ),
+    ], h
+
+
+def pay_method(
+    x: float, y: float, w: float, name: str, logo_text: str, selected: bool = False,
+) -> tuple[list[Element], float]:
+    """Метод оплаты: rect + logo placeholder + name + radio."""
+    h = 56
+    pad = 12
+    radio = 18
+    return [
+        Rect(
+            id=uuid4(), x=x + pad, y=y + 6, w=w - 2 * pad, h=h - 12,
+            attrs={
+                "fill": COLORS["surface"],
+                "stroke": COLORS["accent"] if selected else COLORS["border"],
+                "strokeWidth": 2 if selected else 1, "rx": 8,
+            },
+        ),
+        # logo placeholder
+        Rect(
+            id=uuid4(), x=x + pad + 10, y=y + 14, w=44, h=28,
+            attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 4},
+        ),
+        Text(
+            id=uuid4(), x=x + pad + 14, y=y + 20, w=36, h=18,
+            attrs={"text": logo_text, "fontSize": FONT["size_xs"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + pad + 66, y=y + 20, w=w - 130, h=18,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"]},
+        ),
+        # radio
+        Rect(
+            id=uuid4(), x=x + w - pad - 30, y=y + 18, w=radio, h=radio,
+            attrs={
+                "fill": COLORS["accent"] if selected else "transparent",
+                "stroke": COLORS["accent"] if selected else COLORS["border"],
+                "strokeWidth": 2, "rx": 9,
+            },
+        ),
+    ], h
+
+
 def chat_icon_btn(x: float, y: float, color_hex: str | None = None) -> Element:
     """Маленькая кнопка-иконка чата (lucide:message-circle) для карточек
     комнаты / брони / hotel_detail."""

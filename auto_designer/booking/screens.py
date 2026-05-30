@@ -21,10 +21,15 @@ from auto_designer.booking.components import (
     chat_icon_btn,
     client_card,
     composer,
+    form_field,
     hotel_head,
+    hotel_list_card,
     hotel_tabs,
     msg_bubble_me,
     msg_bubble_them,
+    pay_method,
+    primary_button,
+    role_card,
     room_card,
     subject_card,
     subtitle_bar,
@@ -357,6 +362,248 @@ def client_bookings(
     )
 
 
+def entry(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """entry — выбор роли (multi-role hub после login)."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "RForge Stay"))
+    cur_y += 56
+
+    cur_y += 16
+    children.append(Text(
+        id=uuid4(), x=x + 16, y=cur_y, w=ARTBOARD_W - 32, h=24,
+        attrs={"text": "Выберите режим", "fontSize": FONT["size_xl"],
+               "color": COLORS["text"], "bold": True},
+    ))
+    cur_y += 8
+    children.append(Text(
+        id=uuid4(), x=x + 16, y=cur_y + 28, w=ARTBOARD_W - 32, h=18,
+        attrs={"text": "У вас несколько ролей. Откройте нужную.",
+               "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+    ))
+    cur_y += 60
+
+    roles = [
+        ("Клиент", "Поиск отелей и мои бронирования", "lucide:user-round"),
+        ("Партнёр", "Управление моими отелями", "lucide:briefcase"),
+        ("Администратор", "Все отели и пользователи", "lucide:shield"),
+    ]
+    for label, desc, icon in roles:
+        els, dh = role_card(x, cur_y, ARTBOARD_W, label, desc, icon)
+        children.extend(els)
+        cur_y += dh + 10
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "entry", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def client_hotels(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """client/hotels — список всех отелей (главная клиента)."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Отели"))
+    cur_y += 56
+
+    cur_y += 8
+    hotels = [
+        ("Ала-Тоо Бутик-Стэй", "Бишкек, центр", "5 номеров · от 1800 сом"),
+        ("Манас Гарден Отель", "Бишкек, Чуй", "12 номеров · от 2500 сом"),
+        ("Иссык-Куль Резорт", "Чолпон-Ата", "30 номеров · от 4000 сом"),
+        ("Алтын-Арашан Лодж", "Каракол", "8 номеров · от 3200 сом"),
+    ]
+    for name, city, meta in hotels:
+        els, dh = hotel_list_card(x, cur_y, ARTBOARD_W, name, city, meta)
+        children.extend(els)
+        cur_y += dh + 4
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _CLIENT_NAV, active_idx=4)
+    children.extend(els)
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "client/hotels", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def client_hotel_book(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """client/hotel/book — форма подтверждения бронирования."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Бронирование"))
+    cur_y += 56
+
+    # room summary card
+    cur_y += 8
+    children.append(Rect(
+        id=uuid4(), x=x + 8, y=cur_y, w=ARTBOARD_W - 16, h=66,
+        attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 20, y=cur_y + 12, w=ARTBOARD_W - 40, h=20,
+        attrs={"text": "Стандарт двухместный", "fontSize": FONT["size_md"],
+               "color": COLORS["text"], "bold": True},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 20, y=cur_y + 36, w=ARTBOARD_W - 40, h=18,
+        attrs={"text": "Ала-Тоо Бутик-Стэй · 3000 сом/ночь",
+               "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+    ))
+    cur_y += 78
+
+    # form fields
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Заезд", "12 июня 2026")
+    children.extend(els)
+    cur_y += dh
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Выезд", "15 июня 2026")
+    children.extend(els)
+    cur_y += dh
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Гости", "1 гость")
+    children.extend(els)
+    cur_y += dh
+    els, dh = form_field(x, cur_y, ARTBOARD_W, "Пожелания", "Можно с собакой", multiline=True)
+    children.extend(els)
+    cur_y += dh + 8
+
+    # total
+    children.append(Rect(
+        id=uuid4(), x=x + 12, y=cur_y, w=ARTBOARD_W - 24, h=44,
+        attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 24, y=cur_y + 14, w=ARTBOARD_W / 2, h=20,
+        attrs={"text": "Итого", "fontSize": FONT["size_md"], "color": COLORS["text"]},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + ARTBOARD_W - 130, y=cur_y + 14, w=110, h=20,
+        attrs={"text": "9 000 сом", "fontSize": FONT["size_lg"],
+               "color": COLORS["text"], "bold": True},
+    ))
+
+    # primary button прижат к низу
+    btn_y = y + ARTBOARD_H - 64
+    els, _ = primary_button(x, btn_y, ARTBOARD_W, "Подтвердить бронь")
+    children.extend(els)
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "client/hotel/book", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def client_pay(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """client/pay — экран оплаты."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "Оплата"))
+    cur_y += 56
+
+    # summary
+    cur_y += 12
+    children.append(Rect(
+        id=uuid4(), x=x + 8, y=cur_y, w=ARTBOARD_W - 16, h=80,
+        attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 8},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 20, y=cur_y + 12, w=ARTBOARD_W - 40, h=18,
+        attrs={"text": "Код брони: BK-2026-001", "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + 20, y=cur_y + 32, w=ARTBOARD_W - 40, h=20,
+        attrs={"text": "Ала-Тоо Бутик-Стэй · 3 ночи", "fontSize": FONT["size_md"],
+               "color": COLORS["text"], "bold": True},
+    ))
+    children.append(Text(
+        id=uuid4(), x=x + ARTBOARD_W - 140, y=cur_y + 56, w=120, h=20,
+        attrs={"text": "9 000 сом", "fontSize": FONT["size_lg"],
+               "color": COLORS["accent"], "bold": True},
+    ))
+    cur_y += 92
+
+    # methods heading
+    children.append(Text(
+        id=uuid4(), x=x + 14, y=cur_y, w=ARTBOARD_W - 28, h=20,
+        attrs={"text": "Способ оплаты", "fontSize": FONT["size_md"],
+               "color": COLORS["text"], "bold": True},
+    ))
+    cur_y += 26
+
+    methods = [
+        ("MBANK", "M·B", True),
+        ("Optima", "OPT", False),
+        ("Bakai", "BAI", False),
+        ("Карта Visa / Mastercard", "VISA", False),
+    ]
+    for name, logo, sel in methods:
+        els, dh = pay_method(x, cur_y, ARTBOARD_W, name, logo, selected=sel)
+        children.extend(els)
+        cur_y += dh + 4
+
+    # primary button прижат к низу
+    btn_y = y + ARTBOARD_H - 64
+    els, _ = primary_button(x, btn_y, ARTBOARD_W, "Оплатить 9 000 сом")
+    children.extend(els)
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "client/pay", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
+def partner_hotels_list(frame_id: UUID, external_ref: UUID, x: float = 0, y: float = 0) -> Frame:
+    """partner/hotels_list — мои отели (партнёр)."""
+    children: list[Element] = [_bg(x, y)]
+    cur_y = y
+
+    children.extend(topbar(x, cur_y, ARTBOARD_W, "rforge_booking_bot"))
+    cur_y += 56
+
+    els, dh = subtitle_bar(x, cur_y, ARTBOARD_W, "Мои отели")
+    children.extend(els)
+    cur_y += dh
+
+    cur_y += 4
+    hotels = [
+        ("Ала-Тоо Бутик-Стэй", "Бишкек, ул. Жибек-Жолу 100", "5 номеров · опубликовано"),
+        ("Манас Гарден Отель", "Бишкек, Чуй 200", "12 номеров · опубликовано"),
+        ("Озеро Делюкс", "Чолпон-Ата", "3 номера · черновик"),
+    ]
+    for name, city, meta in hotels:
+        els, dh = hotel_list_card(x, cur_y, ARTBOARD_W, name, city, meta)
+        children.extend(els)
+        cur_y += dh + 4
+
+    # «+» добавить отель — кнопка plus floating
+    cur_y += 12
+    els, _ = primary_button(x, cur_y, ARTBOARD_W, "+ Добавить отель")
+    children.extend(els)
+
+    nav_y = y + ARTBOARD_H - 56
+    els, _ = bottom_nav(x, nav_y, ARTBOARD_W, _PARTNER_NAV, active_idx=0)
+    children.extend(els)
+
+    return Frame(
+        id=frame_id, external_ref=external_ref,
+        x=x, y=y, w=ARTBOARD_W, h=ARTBOARD_H,
+        attrs={"title": "partner/hotels_list", "fill": COLORS["bg"], "rx": 0},
+        children=children,
+    )
+
+
 SCREENS = {
     "chat_thread": chat_thread,
     "partner_clients_list": partner_clients_list,
@@ -364,16 +611,32 @@ SCREENS = {
     "client_hotel_detail": client_hotel_detail,
     "client_hotel_rooms": client_hotel_rooms,
     "client_bookings": client_bookings,
+    "entry": entry,
+    "client_hotels": client_hotels,
+    "client_hotel_book": client_hotel_book,
+    "client_pay": client_pay,
+    "partner_hotels_list": partner_hotels_list,
 }
 
-# 3×2 grid layout. Row 1: chat-thread + 2 partner screens.
-# Row 2: 3 client screens (hotel detail / rooms / bookings).
+# 3×N grid layout.
 _ROW_GAP = 60
+_R1 = 0
+_R2 = ARTBOARD_H + _ROW_GAP
+_R3 = 2 * (ARTBOARD_H + _ROW_GAP)
+_C1 = 0
+_C2 = ARTBOARD_W + 30
+_C3 = 2 * (ARTBOARD_W + 30)
+
 SCREEN_POSITIONS: dict[str, tuple[float, float]] = {
-    "chat_thread": (0, 0),
-    "partner_clients_list": (ARTBOARD_W + 30, 0),
-    "partner_client_edit_chat": (2 * (ARTBOARD_W + 30), 0),
-    "client_hotel_detail": (0, ARTBOARD_H + _ROW_GAP),
-    "client_hotel_rooms": (ARTBOARD_W + 30, ARTBOARD_H + _ROW_GAP),
-    "client_bookings": (2 * (ARTBOARD_W + 30), ARTBOARD_H + _ROW_GAP),
+    "chat_thread": (_C1, _R1),
+    "partner_clients_list": (_C2, _R1),
+    "partner_client_edit_chat": (_C3, _R1),
+    "client_hotel_detail": (_C1, _R2),
+    "client_hotel_rooms": (_C2, _R2),
+    "client_bookings": (_C3, _R2),
+    "entry": (_C1, _R3),
+    "client_hotels": (_C2, _R3),
+    "client_hotel_book": (_C3, _R3),
+    "client_pay": (_C1, _R3 + ARTBOARD_H + _ROW_GAP),
+    "partner_hotels_list": (_C2, _R3 + ARTBOARD_H + _ROW_GAP),
 }

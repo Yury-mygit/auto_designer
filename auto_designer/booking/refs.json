@@ -22,5 +22,25 @@
   "client_bookings": {
     "frame_id": "05044ce6-fa8d-4d09-963a-62817fc34f1c",
     "external_ref": "780861fb-926a-4fab-9493-14f4708a19f2"
+  },
+  "entry": {
+    "frame_id": "e64e7af0-bc72-42ce-b950-c257c53a40cd",
+    "external_ref": "d6cc7268-6127-47d9-a426-b29c632b0616"
+  },
+  "client_hotels": {
+    "frame_id": "cfbd2e3a-3190-47df-9f08-de7fb16cf991",
+    "external_ref": "946be310-3fd6-43ad-befa-dfab2f43536b"
+  },
+  "client_hotel_book": {
+    "frame_id": "3e8509e5-af23-4d8f-8ecb-0912e69f5df1",
+    "external_ref": "d8245c01-90ae-4d32-b6eb-f2e12937f6f0"
+  },
+  "client_pay": {
+    "frame_id": "8db6542b-be69-46cd-a4e6-5ee45e7c1e45",
+    "external_ref": "376e7837-f99b-4025-9a6c-5141cbda3de9"
+  },
+  "partner_hotels_list": {
+    "frame_id": "47a4f658-3bdb-49ee-a321-5b6ac4e2d2d1",
+    "external_ref": "c93a5087-4ee6-4ca3-8d2f-40033bab26ce"
   }
 }

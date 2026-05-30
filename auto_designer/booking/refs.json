@@ -10,5 +10,17 @@
   "partner_client_edit_chat": {
     "frame_id": "a735ac2e-8fd4-49b8-811d-10e372bb446f",
     "external_ref": "76e472c1-74c7-4f62-aeb3-c47ae6ae7c10"
+  },
+  "client_hotel_detail": {
+    "frame_id": "441cb8f9-d1cf-4e17-a372-b6afdbfba35d",
+    "external_ref": "08bff8d1-b535-42c3-a11a-961b322c6334"
+  },
+  "client_hotel_rooms": {
+    "frame_id": "52452dff-9733-47f1-ba53-ed38b35052c9",
+    "external_ref": "2dd979f8-8d2c-40bb-876c-aa531c1129d6"
+  },
+  "client_bookings": {
+    "frame_id": "05044ce6-fa8d-4d09-963a-62817fc34f1c",
+    "external_ref": "780861fb-926a-4fab-9493-14f4708a19f2"
   }
 }

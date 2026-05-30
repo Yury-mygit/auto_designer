@@ -82,11 +82,15 @@ def subtitle_bar(x: float, y: float, w: float, text: str) -> tuple[list[Element]
 # Lucide icons via iconify.design (SVG). Цвет берётся из ?color param.
 # Active items используют accent (#1a73e8), inactive — #888888.
 _LUCIDE_ICON = {
+    # partner
     "Отели": "lucide:building-2",
     "Комнаты": "lucide:bed",
     "Брони": "lucide:calendar-days",
     "Клиенты": "lucide:users",
     "Персонал": "lucide:user",
+    # client
+    "Отель": "lucide:hotel",
+    "Услуги": "lucide:sparkles",
 }
 
 
@@ -305,6 +309,187 @@ def msg_bubble_me(x: float, y: float, w_max: float, text: str) -> tuple[list[Ele
         sender_label="Вы", time="14:24",
         fg=COLORS["accent_text"], bg=COLORS["accent"],
     )
+
+
+def chat_icon_btn(x: float, y: float, color_hex: str | None = None) -> Element:
+    """Маленькая кнопка-иконка чата (lucide:message-circle) для карточек
+    комнаты / брони / hotel_detail."""
+    color = color_hex or COLORS["accent"]
+    return Element(
+        id=uuid4(), type="image",
+        x=x, y=y, w=28, h=28,
+        attrs={"src": _icon_url("lucide:message-circle", color), "fit": "contain"},
+    )
+
+
+def hotel_head(
+    x: float, y: float, w: float, name: str, address: str, photo_h: int = 180,
+) -> tuple[list[Element], float]:
+    """Hotel detail head: фото-плейсхолдер + название + адрес + chat-btn."""
+    pad = 12
+    elements: list[Element] = [
+        # photo placeholder — hero
+        Rect(
+            id=uuid4(), x=x, y=y, w=w, h=photo_h,
+            attrs={"fill": COLORS["surface_soft"], "stroke": None, "rx": 0},
+        ),
+        Text(
+            id=uuid4(), x=x + w / 2 - 20, y=y + photo_h / 2 - 8, w=40, h=20,
+            attrs={"text": "🏨", "fontSize": 32, "color": COLORS["text_faint"]},
+        ),
+    ]
+    # info-block под фото
+    info_y = y + photo_h
+    name_w = w - 2 * pad - 40  # минус кнопка-чат справа
+    elements.extend([
+        Rect(
+            id=uuid4(), x=x, y=info_y, w=w, h=70,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 0},
+        ),
+        Text(
+            id=uuid4(), x=x + pad, y=info_y + 12, w=name_w, h=22,
+            attrs={"text": name, "fontSize": FONT["size_lg"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + pad, y=info_y + 38, w=name_w, h=18,
+            attrs={"text": address, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        chat_icon_btn(x + w - pad - 28, info_y + 22),
+    ])
+    return elements, photo_h + 70
+
+
+def hotel_tabs(x: float, y: float, w: float, active: str) -> tuple[list[Element], float]:
+    """Topbar tabs Отель / Комнаты / Услуги."""
+    h = 44
+    items = ["Отель", "Комнаты", "Услуги"]
+    cell_w = w / len(items)
+    elements: list[Element] = [
+        Rect(
+            id=uuid4(), x=x, y=y, w=w, h=h,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 0},
+        ),
+    ]
+    for i, label in enumerate(items):
+        cx = x + i * cell_w
+        is_active = label == active
+        color = COLORS["accent"] if is_active else COLORS["text_faint"]
+        text_w = len(label) * 7.5
+        elements.append(Text(
+            id=uuid4(), x=cx + (cell_w - text_w) / 2, y=y + 14, w=cell_w, h=18,
+            attrs={"text": label, "fontSize": FONT["size_md"], "color": color, "bold": is_active},
+        ))
+        if is_active:
+            # underline 2px accent
+            elements.append(Rect(
+                id=uuid4(), x=cx + cell_w / 4, y=y + h - 2, w=cell_w / 2, h=2,
+                attrs={"fill": COLORS["accent"], "rx": 1},
+            ))
+    return elements, h
+
+
+def room_card(
+    x: float, y: float, w: float, name: str, meta: str, price: str,
+    available: bool = True,
+) -> tuple[list[Element], float]:
+    """Карточка комнаты: фото + name + meta + price + Забронировать-btn + chat-icon."""
+    h = 130
+    pad = 12
+    photo_h = 70
+    elements: list[Element] = [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 10},
+        ),
+        # photo
+        Rect(
+            id=uuid4(), x=x + 18, y=y + 14, w=photo_h, h=photo_h,
+            attrs={"fill": COLORS["surface_soft"], "stroke": COLORS["border_soft"], "strokeWidth": 1, "rx": 6},
+        ),
+        Text(
+            id=uuid4(), x=x + 18 + photo_h / 2 - 12, y=y + 14 + photo_h / 2 - 8, w=24, h=20,
+            attrs={"text": "🛏", "fontSize": 22, "color": COLORS["text_faint"]},
+        ),
+        # name
+        Text(
+            id=uuid4(), x=x + 18 + photo_h + 12, y=y + 14, w=w - 60 - photo_h - 30, h=20,
+            attrs={"text": name, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        # meta
+        Text(
+            id=uuid4(), x=x + 18 + photo_h + 12, y=y + 36, w=w - 60 - photo_h, h=16,
+            attrs={"text": meta, "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        # price
+        Text(
+            id=uuid4(), x=x + 18 + photo_h + 12, y=y + 56, w=w - 60 - photo_h, h=18,
+            attrs={"text": price, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        # chat icon top-right
+        chat_icon_btn(x + w - 18 - 28, y + 14),
+    ]
+    # Забронировать button внизу карточки
+    btn_y = y + h - 36
+    btn_w = w - 36
+    if available:
+        elements.append(Rect(
+            id=uuid4(), x=x + 18, y=btn_y, w=btn_w, h=28,
+            attrs={"fill": COLORS["accent"], "stroke": COLORS["accent"], "strokeWidth": 1, "rx": 4},
+        ))
+        text_w = len("Забронировать") * 8.5
+        elements.append(Text(
+            id=uuid4(), x=x + 18 + (btn_w - text_w) / 2, y=btn_y + 6, w=btn_w, h=18,
+            attrs={"text": "Забронировать", "fontSize": FONT["size_md"], "color": COLORS["accent_text"], "bold": True},
+        ))
+    else:
+        elements.append(Rect(
+            id=uuid4(), x=x + 18, y=btn_y, w=btn_w, h=28,
+            attrs={"fill": COLORS["disabled_bg"] if "disabled_bg" in COLORS else "#aaaaaa", "stroke": None, "rx": 4},
+        ))
+        text_w = len("Недоступно") * 8.5
+        elements.append(Text(
+            id=uuid4(), x=x + 18 + (btn_w - text_w) / 2, y=btn_y + 6, w=btn_w, h=18,
+            attrs={"text": "Недоступно", "fontSize": FONT["size_md"], "color": COLORS["surface"], "bold": True},
+        ))
+    return elements, h
+
+
+def booking_card(
+    x: float, y: float, w: float, code: str, hotel: str, dates: str,
+    price: str, status: str,
+) -> tuple[list[Element], float]:
+    """Карточка брони: code + hotel + dates + price + status + chat-icon + pay-btn."""
+    h = 132
+    pad = 12
+    elements: list[Element] = [
+        Rect(
+            id=uuid4(), x=x + 8, y=y + 4, w=w - 16, h=h - 8,
+            attrs={"fill": COLORS["surface"], "stroke": COLORS["border"], "strokeWidth": 1, "rx": 10},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 14, w=w - 80, h=18,
+            attrs={"text": f"Код: {code}", "fontSize": FONT["size_sm"], "color": COLORS["muted"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 34, w=w - 80, h=20,
+            attrs={"text": hotel, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 58, w=w - 40, h=18,
+            attrs={"text": dates, "fontSize": FONT["size_sm"], "color": COLORS["text"]},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 78, w=w - 40, h=20,
+            attrs={"text": price, "fontSize": FONT["size_md"], "color": COLORS["text"], "bold": True},
+        ),
+        Text(
+            id=uuid4(), x=x + 20, y=y + 100, w=w - 80, h=18,
+            attrs={"text": status, "fontSize": FONT["size_xs"], "color": COLORS["muted"]},
+        ),
+        # chat icon top-right
+        chat_icon_btn(x + w - 20 - 28, y + 14),
+    ]
+    return elements, h
 
 
 def composer(x: float, y: float, w: float, placeholder: str = "Сообщение…") -> tuple[list[Element], float]:
